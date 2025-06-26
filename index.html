@@ -795,12 +795,21 @@
   function hasLocationChanged(newLocation, oldLocation) {
     if (!oldLocation || !newLocation) return true;
     
-    // Consider location changed if moved more than ~100 meters
+    // Use different thresholds based on location source
+    const isGPS = newLocation.source && (newLocation.source.includes('GPS') || newLocation.source.includes('IRL Pro'));
+    const threshold = isGPS ? 0.001 : 0.01; // ~100m for GPS, ~1km for IP location
+    
+    // Consider location changed if moved more than the threshold
     const latDiff = Math.abs(newLocation.lat - oldLocation.lat);
     const lonDiff = Math.abs(newLocation.lon - oldLocation.lon);
-    const threshold = 0.001; // Roughly 100 meters
     
-    return latDiff > threshold || lonDiff > threshold;
+    const changed = latDiff > threshold || lonDiff > threshold;
+    if (changed) {
+      console.log(`Location change detected (${isGPS ? 'GPS' : 'IP'} threshold: ${threshold}):`, 
+        { latDiff: latDiff.toFixed(6), lonDiff: lonDiff.toFixed(6) });
+    }
+    
+    return changed;
   }
   
   // Lightweight weather change check
@@ -884,7 +893,14 @@
         }
       }
       if (!currentLocation) {
-        currentLocation = lastLocationData; // Use last known
+        // Try fresh IP location when GPS isn't available
+        try {
+          console.log('GPS not available, checking IP location...');
+          currentLocation = await getIPLocation();
+        } catch (e) {
+          console.log('IP location failed, using cached location');
+          currentLocation = lastLocationData; // Use last known as final fallback
+        }
       }
       
       if (!currentLocation) {
