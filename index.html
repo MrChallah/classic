@@ -1048,7 +1048,7 @@
         lastKnownLocation = locationData;
         lastKnownLocation.timestamp = Date.now();
         if (showLoadingMessages || isSignificantMove) {
-          placeEl.textContent = isSignificantMove ? "🚗 Location changed..." : "Loading location...";
+          placeEl.textContent = "Loading location...";
         }
         
         try {
