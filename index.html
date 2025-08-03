@@ -147,15 +147,58 @@
     }
   }
   
+  // Helper function to clean administrative terms from city names
+  function cleanCityName(cityName) {
+    if (!cityName) return cityName;
+    
+    // Remove common administrative terms that make city names unnecessarily long
+    const administrativeTerms = [
+      'Municipal Unit',
+      'Municipality',
+      'City of',
+      'Town of',
+      'Village of',
+      'District of',
+      'Region of',
+      'Province of',
+      'County of',
+      'Borough of',
+      'Metropolitan Area',
+      'Urban Area',
+      'Administrative Region',
+      'Special Administrative Region',
+      'Autonomous Region',
+      'Federal District',
+      'Capital District',
+      'Metropolitan District'
+    ];
+    
+    let cleanedName = cityName;
+    for (const term of administrativeTerms) {
+      // Case insensitive replacement
+      const regex = new RegExp(`\\b${term}\\b`, 'gi');
+      cleanedName = cleanedName.replace(regex, '').trim();
+    }
+    
+    // Clean up any double spaces that might result
+    cleanedName = cleanedName.replace(/\s+/g, ' ');
+    
+    console.log('Classic city name cleaned:', cityName, '->', cleanedName);
+    return cleanedName;
+  }
+
   // Helper function to filter location parts based on word count rules
   function filterLocationByWordCount(city, state, country) {
+    // Clean administrative terms from city name first
+    const cleanedCity = cleanCityName(city);
+    
     // Count words in each component (split by spaces and filter out empty strings)
-    const cityWords = city ? city.split(/\s+/).filter(word => word.length > 0).length : 0;
+    const cityWords = cleanedCity ? cleanedCity.split(/\s+/).filter(word => word.length > 0).length : 0;
     const stateWords = state ? state.split(/\s+/).filter(word => word.length > 0).length : 0;
     const countryWords = country ? country.split(/\s+/).filter(word => word.length > 0).length : 0;
     
     console.log('Word count analysis:', {
-      city: city, cityWords: cityWords,
+      city: city, cleanedCity: cleanedCity, cityWords: cityWords,
       state: state, stateWords: stateWords, 
       country: country, countryWords: countryWords
     });
@@ -167,7 +210,7 @@
     
     let filteredState = state;
     
-    if (city && state && country) {
+    if (cleanedCity && state && country) {
       if (cityWords >= 3) {
         console.log('Hiding state because city has 3+ words:', cityWords);
         filteredState = '';
@@ -179,8 +222,8 @@
       }
     }
     
-    // Build final parts array with filtered state
-    const parts = [city, filteredState, country].filter(Boolean);
+    // Build final parts array with filtered state, using cleaned city name
+    const parts = [cleanedCity, filteredState, country].filter(Boolean);
     console.log('Final location parts after word count filtering:', parts);
     
     return parts.join(", ");
@@ -430,7 +473,9 @@
   
   async function reverseGeocodeWithNominatim(lat, lon) {
     // Fallback to Nominatim with additional language parameters
-    const res = await fetchWithRetry(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en&addressdetails=1&extratags=1`);
+            // OpenStreetMap Nominatim geocoding service
+        // Attribution: © OpenStreetMap contributors under Open Database License
+        const res = await fetchWithRetry(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en&addressdetails=1&extratags=1`);
     const geo = await res.json();
     const addr = geo.address;
     
