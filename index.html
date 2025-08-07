@@ -554,8 +554,8 @@
     });
     
           // Special handling for Austin area - prioritize Austin over Houston
-      // Check if we're in the Austin area (roughly 30.2672°N, -97.7431°W ± 0.4 degrees)
-      const isAustinArea = lat >= 30.0 && lat <= 30.8 && lon >= -98.2 && lon <= -97.2;
+      // Check if we're in the Austin area (roughly 30.2672°N, -97.7431°W ± 0.25 degrees)
+      const isAustinArea = lat >= 30.1 && lat <= 30.6 && lon >= -98.0 && lon <= -97.4;
     if (isAustinArea) {
       console.log('Detected Austin area, prioritizing Austin over Houston');
       // Remove Houston from the list if it exists
